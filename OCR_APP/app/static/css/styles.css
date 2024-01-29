@@ -35,10 +35,11 @@ nav h5 {
 
 .container {
     margin-top: 20px;
-    width: 50%; /* Adjust the width as needed */
+    width: 100%; /* Adjust the width as needed */
     padding: 10px;
-    max-width: 600px;
-}
+    display: flex;
+    justify-content: center;
+    }
 
 .file-field {
     margin-bottom: 20px;
@@ -52,10 +53,12 @@ nav h5 {
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
     width: 150px; /* Set your preferred width */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    border-radius: 12px;
 }
 
 
@@ -79,6 +82,7 @@ nav h5 {
     color: white;
     padding: 10px;
     cursor: pointer;
+    border-radius: 12px;
 }
 
 .button-2 {

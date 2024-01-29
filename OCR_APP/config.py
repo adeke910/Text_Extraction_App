@@ -11,7 +11,7 @@ class Config(object):
 
     SECRET_KEY = 'advantage'
 
-    UPLOADS = "/home/username/app/app/static/uploads"
+    UPLOADS = "../app/static/uploads"
 
     SESSION_COOKIE_SECURE = True
     DEFAULT_THEME = None
