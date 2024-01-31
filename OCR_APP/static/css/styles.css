@@ -62,14 +62,6 @@ nav h5 {
 }
 
 
-/* .file-field .button-1 input {
-    opacity: 0;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-} */
-
 .file-path-wrapper {
     flex-grow: 1;
     padding-left: 10px;

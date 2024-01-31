@@ -53,7 +53,15 @@
                     </button>
                   </div>
                   <!-- </div> -->
-
+                  <div id="result"></div>
+                  <div>
+                    {% if text %}
+                    <br />
+                    <h3>Extracted</h3>
+                    {% for i in text: %}
+                    <p>{{ i }}</p>
+                    {% endfor %} {% endif %}
+                  </div>
                   <div class="row center">
                     <button id="submit" type="submit" class="button-2">
                       Extract
@@ -63,7 +71,7 @@
                   <div class="row">
                     <p>Choose download format:</p>
                     <p>
-                      <label>
+                      <!-- <label>
                         <input name="save_option" type="radio" value="csv" />
                         <span>CSV</span>
                       </label>
@@ -72,7 +80,7 @@
                       <label>
                         <input name="save_option" type="radio" value="json" />
                         <span>JSON</span>
-                      </label>
+                      </label> -->
                     </p>
                   </div>
                 </div>
@@ -98,7 +106,7 @@
       }
       function uploadFile() {
         const fileInput = document.getElementById("file_upload");
-        const resultDiv = document.getElementById("submit");
+        const resultDiv = document.getElementById("result");
         console.log("file", fileInput.files[0]);
         // Check if a file is selected
         if (fileInput.files.length == 0) {
@@ -107,18 +115,20 @@
         }
 
         const formData = new FormData();
-        for (let i = 0; i < fileInput.files.length; i++) {
-          formData.append("file_upload[]", fileInput.files[i]);
-        }
+        formData.append("file_upload", fileInput.files[0]);
+        // for (let i = 0; i < fileInput.files.length; i++) {
+        //   formData.append("file_upload", fileInput.files[i]);
+        // }
 
         fetch("/", {
           method: "POST",
           body: formData,
         })
-          .then((Response) => Response.json())
+          // .then((Response) => Response.json())
           .then((data) => {
             // Handle the response from API
-            resultDiv.innerText = "Server response:" + JSON.stringify(data);
+            resultDiv.innerText =
+              "File Uploaded. Click Extract to view extraction.";
           })
           .catch((error) => {
             // Handle Errors
