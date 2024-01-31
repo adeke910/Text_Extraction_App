@@ -118,13 +118,13 @@ def process_image():
             # process PDF file
             extracted_text_list = extract_text_from_pdf(file_upload)
 
-        # Save extracted text to CSV or JSON based on user's choice
-        save_option = request.form.get('save_option')
+        # # Save extracted text to CSV or JSON based on user's choice
+        # save_option = request.form.get('save_option')
 
-        if save_option == 'csv':
-            save_to_csv(extracted_text_list, filename='output.csv')
-        elif save_option == 'json':
-            save_to_json(extracted_text_list, filename='output.json')
+        # if save_option == 'csv':
+        #     save_to_csv(extracted_text_list, filename='output.csv')
+        # elif save_option == 'json':
+        #     save_to_json(extracted_text_list, filename='output.json')
 
         # # Saving image to display in HTML
         # img = Image.fromarray(image_arr, 'RGB')
