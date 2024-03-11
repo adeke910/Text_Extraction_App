@@ -1,38 +1,38 @@
 from flask import Flask, render_template, request, jsonify
-from PIL import Image
-import numpy as np
-import cv2
-import pytesseract
-import string
-import random
 import os
 import csv
 import json
-import fitz  # PyMuPDF
-# from utils import extract_text_from_image, remove_characters, save_to_csv, save_to_json
+import requests
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # # Adding path to config
 app.config['INITIAL_FILE_UPLOAD'] = 'static/uploads'
 
-# Function to extract text from an image using Tesseract
+# Function to extract text from an image using EdenAI
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+OCR_ENDPOINT = "https://api.edenai.run/v1/pretrained/vision/ocr"
 
+# Eden AI API key
+API_KEY = "YOUR_EDEN_AI_API_KEY"
 
-def extract_text_from_image(image):
-    custom_config = r'-l eng --oem 3 --psm 6'
-    text = pytesseract.image_to_string(image, config=custom_config)
-    return text
-
-# Function to remove specified characters from a string
+# Function to extract text from an image using Eden AI OCR API
 
 
-def remove_characters(text, characters):
-    for character in characters:
-        text = text.replace(character, "")
-    return text
+def extract_text_from_image(image_file):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    files = {
+        "files": image_file,
+        "providers": ["microsoft", "aws", "google", "ibm"],
+        "language": "en"
+    }
+    response = requests.post(OCR_ENDPOINT, files=files, headers=headers)
+    if response.status_code == 200:
+        return response.json().get("predictions")[0].get("ocr")
+    else:
+        return None
 
 # Function to save extracted text to a CSV file
 
@@ -45,23 +45,6 @@ def save_to_csv(data, filename='output.csv'):
 
 # Function to save extracted text to a JSON file
 
-
-def save_to_json(data, filename='output.json'):
-    with open(filename, 'w', encoding='utf-8') as jsonfile:
-        json.dump(data, jsonfile, ensure_ascii=False, indent=2)
-
-
-def extract_text_from_pdf(pdf_file):
-    text = ''
-    try:
-        pdf_document = fitz.open(pdf_file)
-        for page_number in range(pdf_document.page_count):
-            page = pdf_document[page_number]
-            text += page.get_text()
-        pdf_document.close()
-    except Exception as e:
-        return f'Error extracting text from PDF: {str(e)}'
-    return text
 
 # Route to home page
 
@@ -79,44 +62,18 @@ def process_image():
         return render_template("index.html", full_filename=full_filename)
 
     if request.method == "POST":
-        file_upload = request.files['file_upload']
+        file_upload = request.files["file_upload"]
         file_name = file_upload.filename
+        file_extension = os.path.splitext(file_name)[1].lower()
 
-        # check the file extension
-        _, file_extension = os.path.splitext(file_name)
+        if file_extension in [".jpg", ".jpeg", ".png", ".gif", ".pdf"]:
+            # Extract text from image
+            text = extract_text_from_image(file_upload)
 
-        if file_extension.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
-            # process image file
-            image = Image.open(file_upload)
-
-            # Converting image to array
-            image_arr = np.array(image.convert('RGB'))
-
-            # Converting image to grayscale
-            gray_img_arr = cv2.cvtColor(image_arr, cv2.COLOR_BGR2GRAY)
-            # Converting image back to RGB
-            image = Image.fromarray(gray_img_arr)
-
-            # Printing lowercase
-            letters = string.ascii_lowercase
-
-            # Generating unique image name for dynamic image display
-            name = ''.join(random.choice(letters) for i in range(10)) + '.png'
-            full_filename = 'uploads/' + name
-
-            # Extracting text from image
-            text = extract_text_from_image(image)
-
-            # Remove specified symbols
-            characters_to_remove = "!()@—*“>+-/,'|£#%$&^_~"
-            cleaned_text = remove_characters(text, characters_to_remove)
-
-            # Converting string into a list to display extracted text in separate lines
-            extracted_text_list = cleaned_text.split("\n")
-
-        elif file_extension.lower == '.pdf':
-            # process PDF file
-            extracted_text_list = extract_text_from_pdf(file_upload)
+            if text:
+                return render_template("result.html", full_filename=full_filename, text=text)
+            else:
+                return "Error extracting text from image"
 
         # # Save extracted text to CSV or JSON based on user's choice
         # save_option = request.form.get('save_option')
@@ -129,9 +86,6 @@ def process_image():
         # # Saving image to display in HTML
         # img = Image.fromarray(image_arr, 'RGB')
         # img.save(os.path.join(app.config['INITIAL_FILE_UPLOAD'], name))
-
-        # Returning template, filename, extracted text
-        return render_template('index.html', full_filename=full_filename, text=extracted_text_list)
 
 
 if __name__ == '__main__':
