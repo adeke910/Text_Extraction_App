@@ -7,6 +7,7 @@ import requests
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # # Adding path to config
+UPLOAD_FOLDER = 'static/uploads'
 app.config['INITIAL_FILE_UPLOAD'] = 'static/uploads'
 
 # Function to extract text from an image using EdenAI
@@ -19,7 +20,7 @@ API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmIxNTFkM2QtMWM1
 # Function to extract text from an image using Eden AI OCR API
 
 
-def extract_text_from_image(document_file):
+def extract_text_from_image(file):
     headers = {
         "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmIxNTFkM2QtMWM1Mi00MjI2LWJlZjctZmQ5MDM4ZDhiYWFkIiwidHlwZSI6ImFwaV90b2tlbiJ9.opM4_wAVP84SYg_15CRksv0XMNNYGwogSRsHWKa2jsM",
     }
@@ -30,17 +31,22 @@ def extract_text_from_image(document_file):
         "language": "en"
     }
 
-    uploads_folder_path = os.path.join(os.getcwd(), 'static')
-    image_file_path = os.path.join(uploads_folder_path, 'uploads/test.png')
+    if file:
+        # Ensure the upload folder exists
+        if not os.path.exists(UPLOAD_FOLDER):
+            os.makedirs(UPLOAD_FOLDER)
 
-    files = {"file": open(image_file_path, 'rb')}
+        # Save the file to the upload folder
+        file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(file_path)
+
+    files = {"file": open(file_path, 'rb')}
 
     response = requests.post(
         url, data=data, files=files, headers=headers)
     result = json.loads(response.text)
-    print(result["google"]["text"])
 
-    return result
+    return result["google"]["text"]
 
 # Function to save extracted text to a CSV file
 
