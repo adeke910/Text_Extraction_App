@@ -11,28 +11,36 @@ app.config['INITIAL_FILE_UPLOAD'] = 'static/uploads'
 
 # Function to extract text from an image using EdenAI
 
-OCR_ENDPOINT = "https://api.edenai.run/v1/pretrained/vision/ocr"
+url = "https://api.edenai.run/v2/ocr/ocr"
 
 # Eden AI API key
-API_KEY = "YOUR_EDEN_AI_API_KEY"
+API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmIxNTFkM2QtMWM1Mi00MjI2LWJlZjctZmQ5MDM4ZDhiYWFkIiwidHlwZSI6ImFwaV90b2tlbiJ9.opM4_wAVP84SYg_15CRksv0XMNNYGwogSRsHWKa2jsM"
 
 # Function to extract text from an image using Eden AI OCR API
 
 
-def extract_text_from_image(image_file):
+def extract_text_from_image(document_file):
     headers = {
-        "Authorization": f"Bearer {API_KEY}"
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmIxNTFkM2QtMWM1Mi00MjI2LWJlZjctZmQ5MDM4ZDhiYWFkIiwidHlwZSI6ImFwaV90b2tlbiJ9.opM4_wAVP84SYg_15CRksv0XMNNYGwogSRsHWKa2jsM",
     }
-    files = {
-        "files": image_file,
-        "providers": ["microsoft", "aws", "google", "ibm"],
+
+    data = {
+        "fallback_providers": "",
+        "providers": ["google"],
         "language": "en"
     }
-    response = requests.post(OCR_ENDPOINT, files=files, headers=headers)
-    if response.status_code == 200:
-        return response.json().get("predictions")[0].get("ocr")
-    else:
-        return None
+
+    uploads_folder_path = os.path.join(os.getcwd(), 'static')
+    image_file_path = os.path.join(uploads_folder_path, 'uploads/test.png')
+
+    files = {"file": open(image_file_path, 'rb')}
+
+    response = requests.post(
+        url, data=data, files=files, headers=headers)
+    result = json.loads(response.text)
+    print(result["google"]["text"])
+
+    return result
 
 # Function to save extracted text to a CSV file
 
@@ -43,16 +51,8 @@ def save_to_csv(data, filename='output.csv'):
         csv_writer.writerow(['Text'])
         csv_writer.writerows([[text] for text in data])
 
-# Function to save extracted text to a JSON file
-
 
 # Route to home page
-
-
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
 
 @app.route("/", methods=["GET", "POST"])
 def process_image():
@@ -71,7 +71,8 @@ def process_image():
             text = extract_text_from_image(file_upload)
 
             if text:
-                return render_template("result.html", full_filename=full_filename, text=text)
+                return jsonify({'full_filename': file_name, 'text': text})
+            # render_template("index.html", full_filename=file_name, text=text)
             else:
                 return "Error extracting text from image"
 
